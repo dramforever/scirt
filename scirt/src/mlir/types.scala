@@ -4,8 +4,8 @@ type IntLiteral = Int
 
 case class ValueId(id: String)
 case class BlockId(id: String)
-case class OperationName(id: String)
-case class DialectName(id: String)
+case class OperationId(id: String)
+case class DialectId(id: String)
 case class TypeAliasId(id: String)
 case class AttributeAliasId(id: String)
 
@@ -16,7 +16,7 @@ enum Toplevel:
 
 
 case class Operation(
-  op: OperationName,
+  op: OperationId,
   functionType: Type.Function,
   results: Seq[OpResult],
   valueUses: Seq[ValueUse],
@@ -39,7 +39,7 @@ case class BlockArg(id: ValueId, valueType: Type)
 enum Type:
   case Integer(width: IntLiteral, signedness: Type.Signedness)
   case Function(params: Seq[Type], results: Seq[Type])
-  case Dialect(dialect: DialectName, data: String)
+  case Dialect(dialect: DialectId, data: String)
   case Alias(id: TypeAliasId)
 
 object Type:
@@ -52,6 +52,7 @@ enum Attribute:
   case Dictionary(elems: Seq[(String, Attribute)])
   case TypeAttr(ty: Type)
   case StringAttr(string: String)
+  case Dialect(dialect: DialectId, data: String)
   case Alias(id: AttributeAliasId)
 
 
