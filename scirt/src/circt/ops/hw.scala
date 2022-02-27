@@ -3,6 +3,25 @@ package scirt.circt.ops
 import scirt.mlir._
 
 object hw:
+  def moduleExtern(
+    name: String,
+    inputs: Seq[(String, Type)], outputs: Seq[(String, Type)],
+  ): Operation =
+    import Attribute._
+    import Type._
+
+    Operation(
+      OperationId("hw.module.extern"),
+      Function(Seq(), Seq()),
+      regions = Seq(Region(Seq())),
+      attrs = Dictionary(Seq(
+        "argNames" -> Array(inputs.map(_._1).map(StringAttr(_))),
+        "resultNames" -> Array(outputs.map(_._1).map(StringAttr(_))),
+        "sym_name" -> StringAttr(name),
+        "type" -> TypeAttr(Function(inputs.map(_._2), outputs.map(_._2))),
+        "parameters" -> Array(Seq()),
+        "comment" -> StringAttr(""))))
+
   def module(
     name: String,
     inputs: Seq[(String, ValueId, Type)], outputs: Seq[(String, Type)],
