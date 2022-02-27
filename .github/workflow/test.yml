@@ -1,0 +1,13 @@
+name: "Test"
+on:
+  pull_request:
+  push:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2.4.0
+    - uses: cachix/install-nix-action@v15
+    - run: nix flake check
+    - run: mill __.checkFormat
+    - run: mill __.test
