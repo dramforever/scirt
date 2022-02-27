@@ -189,6 +189,7 @@ enum Attribute:
   case StringAttr(string: String)
   case Dialect(dialect: DialectId, data: String)
   case SymbolRef(sym: Seq[SymbolRefId])
+  case Loc(loc: Location)
   case Alias(id: AttributeAliasId)
 
   def pretty: String = this match
@@ -209,6 +210,8 @@ enum Attribute:
     case SymbolRef(sym) =>
       if sym.isEmpty then throw RuntimeException("Symbol cannot be empty")
       sym.map(_.pretty).mkString("::")
+
+    case Loc(loc) => s"loc(${loc.pretty})"
 
     case Alias(id) => id.pretty
 
