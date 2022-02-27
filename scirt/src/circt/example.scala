@@ -8,7 +8,17 @@ val example: Operation =
     inputs = Seq(("a", ValueId("0"), types.builtin.i(32))),
     outputs = Seq(("o", types.builtin.i(32))),
     ops = Seq(
-      ops.hw.output(Seq((ValueId("0"), types.builtin.i(32))))
+      ops.hw.instance("inst", SymbolRefId("uwu"),
+        Seq(("d", ValueId("0"), types.builtin.i(32))),
+        Seq(("q", ValueId("1"), types.builtin.i(32)))),
+      Operation.simple(
+        OperationId("comb.add"),
+        Seq(
+          ValueId("1") -> types.builtin.i(32),
+          ValueId("2") -> types.builtin.i(32)),
+        Seq(
+          ValueId("2") -> types.builtin.i(32))),
+      ops.hw.output(Seq((ValueId("2"), types.builtin.i(32))))
     ))
 
 @main def main =

@@ -114,6 +114,14 @@ case class Operation(
           +: regions.map(_.prettyBlockInside).reduce(_ ++ Seq("}, {") ++ _)
           :+ s"}) ${trailingPart}"
 
+object Operation:
+  def simple(op: OperationId, inputs: Seq[(ValueId, Type)], outputs: Seq[(ValueId, Type)]): Operation =
+    Operation(
+      op,
+      Type.Function(inputs.map(_._2), outputs.map(_._2)),
+      results = outputs.map(_._1).map(OpResult(_)),
+      uses = inputs.map(_._1).map(ValueUse(_)))
+
 case class Region(entry: Seq[Operation], blocks: Seq[Block] = Seq()):
   def prettyBlockInside: Seq[String] =
     indented(entry.flatMap(_.prettyBlock))
