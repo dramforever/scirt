@@ -3,3 +3,5 @@
 out/
 .direnv/
 .vscode/
+.idea/
+.bsp/
