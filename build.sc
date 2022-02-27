@@ -22,7 +22,7 @@ object scirt extends ScalaModule with ScalafmtModule {
     m.toMap
   }
 
-  object tests extends Tests with TestModule.Utest {
+  object tests extends Tests with TestModule.Utest with ScalafmtModule {
     override def ivyDeps = Agg(
       v.utest
     )
