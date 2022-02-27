@@ -13,7 +13,7 @@ object Example extends TestSuite:
           ops.builtin.module(
             name = Some("design"),
             ops = Seq(
-              ops.hw.moduleExtern("uwu", Seq("d" -> types.builtin.i(32)), Seq("q" -> types.builtin.i(32))),
+              ops.hw.module.extern("uwu", Seq("d" -> types.builtin.i(32)), Seq("q" -> types.builtin.i(32))),
               ops.hw.module(
                 "add",
                 inputs = Seq(("a", ValueId("0"), types.builtin.i(32))),
