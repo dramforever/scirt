@@ -2,24 +2,25 @@ package scirt.mlir
 
 type IntLiteral = Int
 
-private def validSuffixId(id: String): Boolean =
+def validSuffixId(id: String): Boolean =
   id matches "[0-9]+|[a-zA-Z$._-][0-9a-zA-Z$._-]*"
 
-private def validBareId(id: String): Boolean =
+def validBareId(id: String): Boolean =
   id matches raw"[a-zA-Z_][0-9a-zA-Z_$$.]*"
 
-private def serializeString(str: String): String =
+def serializeString(str: String): String =
   val escape: Char => String =
     case '"' => "\\\""
-    case 'n' => "\\n"
-    case 'f' => "\\f"
-    case 'v' => "\\v"
-    case 'r' => "\\r"
+    case '\n' => "\\n"
+    case '\f' => "\\f"
+    case '\u000b' => "\\v"
+    case '\t' => "\\t"
+    case '\r' => "\\r"
     case x => x.toString
 
   s"\"${str.flatMap(escape)}\""
 
-private def indented(lines: Seq[String]): Seq[String] =
+def indented(lines: Seq[String]): Seq[String] =
   lines.map("  " ++ _)
 
 case class ValueId(id: String):
@@ -61,6 +62,10 @@ case class AttributeAliasId(id: String):
   // `#` bare-id
   def pretty: String = "!" + id
 
+
+case class SymbolRefId(id: String):
+  def pretty: String = "@" + serializeString(id)
+
 enum Toplevel:
   case OperationTop(operation: Operation)
   case AttributeAlias(id: AttributeAliasId, value: Attribute)
@@ -74,16 +79,16 @@ enum Toplevel:
     case TypeAlias(id, ty) =>
       Seq(s"${id.pretty} = type ${ty.pretty}")
 
-  def pretty: String = prettyBlock.map(_ + "\n").mkString("\n")
+  def pretty: String = prettyBlock.map(_ + "\n").mkString("")
 
 case class Operation(
   op: OperationId,
   functionType: Type.Function,
-  results: Seq[OpResult],
-  valueUses: Seq[ValueUse],
+  results: Seq[OpResult] = Seq(),
+  uses: Seq[ValueUse] = Seq(),
   successors: Seq[BlockId] = Seq(),
   regions: Seq[Region] = Seq(),
-  dictionaryAttribute: Attribute.Dictionary = Attribute.Dictionary(Seq()),
+  attrs: Attribute.Dictionary = Attribute.Dictionary(Seq()),
   loc: Location = Location.Unknown):
 
   def prettyBlock: Seq[String] =
@@ -97,26 +102,26 @@ case class Operation(
 
     val headerPart =
         s"${resultsPart}" +
-          s"${op.pretty}(${valueUses.map(_.pretty).mkString(", ")})" +
+          s"${op.pretty}(${uses.map(_.pretty).mkString(", ")})" +
           successorsPart
     val trailingPart =
-      s"${dictionaryAttribute.pretty} : ${functionType.pretty} loc(${loc.pretty})"
+      s"${attrs.pretty} : ${functionType.pretty} loc(${loc.pretty})"
 
     regions match
       case Seq() => Seq(s"${headerPart} ${trailingPart}")
       case _ =>
         s"${headerPart} ({"
-          +: regions.map(_.prettyBlockInside).map(indented).reduce(_ ++ Seq("}, {") ++ _)
+          +: regions.map(_.prettyBlockInside).reduce(_ ++ Seq("}, {") ++ _)
           :+ s"}) ${trailingPart}"
 
-case class Region(entryBlock: Seq[Operation], blocks: Seq[Block]):
+case class Region(entry: Seq[Operation], blocks: Seq[Block] = Seq()):
   def prettyBlockInside: Seq[String] =
-    indented(entryBlock.flatMap(_.prettyBlock))
+    indented(entry.flatMap(_.prettyBlock))
     ++ blocks.flatMap(_.prettyBlock)
 
 case class Block(id: BlockId, args: Seq[BlockArg], ops: Seq[Operation]):
   def prettyBlock: Seq[String] =
-    s"${id.pretty}(${args.map(_.pretty)}):"
+    s"${id.pretty}(${args.map(_.pretty).mkString(", ")}):"
       +: indented(ops.flatMap(_.prettyBlock))
 
 case class OpResult(id: ValueId, count: Option[IntLiteral] = None):
@@ -175,6 +180,7 @@ enum Attribute:
   case TypeAttr(ty: Type)
   case StringAttr(string: String)
   case Dialect(dialect: DialectId, data: String)
+  case SymbolRef(sym: Seq[SymbolRefId])
   case Alias(id: AttributeAliasId)
 
   def pretty: String = this match
@@ -191,6 +197,11 @@ enum Attribute:
 
     case TypeAttr(ty) => ty.pretty
     case StringAttr(string) => serializeString(string)
+
+    case SymbolRef(sym) =>
+      if sym.isEmpty then throw RuntimeException("Symbol cannot be empty")
+      sym.map(_.pretty).mkString("::")
+
     case Alias(id) => id.pretty
 
   end pretty
