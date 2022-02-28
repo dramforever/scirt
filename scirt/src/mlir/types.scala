@@ -187,6 +187,7 @@ enum Attribute:
   case Dictionary(elems: Seq[(String, Attribute)])
   case TypeAttr(ty: Type)
   case StringAttr(string: String)
+  case IntegerAttr(value: IntLiteral, ty: Type.Integer)
   case Dialect(dialect: DialectId, data: String)
   case SymbolRef(sym: Seq[SymbolRefId])
   case Loc(loc: Location)
@@ -206,6 +207,7 @@ enum Attribute:
 
     case TypeAttr(ty) => ty.pretty
     case StringAttr(string) => serializeString(string)
+    case IntegerAttr(value, ty) => s"${value} : ${ty.pretty}"
 
     case SymbolRef(sym) =>
       if sym.isEmpty then throw RuntimeException("Symbol cannot be empty")
