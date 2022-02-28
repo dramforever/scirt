@@ -1,6 +1,6 @@
 package scirt.circt.ops
 
-import scirt.mlir._
+import scirt.mlir.*
 
 object hw:
   object module:
@@ -9,8 +9,8 @@ object hw:
         name: String,
         inputs: Seq[(String, Type)], outputs: Seq[(String, Type)],
       ): Operation =
-        import Attribute._
-        import Type._
+        import Attribute.*
+        import Type.*
 
         Operation(
           OperationId("hw.module.extern"),
@@ -29,8 +29,8 @@ object hw:
       inputs: Seq[(String, ValueId, Type)], outputs: Seq[(String, Type)],
       ops: Seq[Operation]
     ): Operation =
-      import Attribute._
-      import Type._
+      import Attribute.*
+      import Type.*
 
       val block = inputs match
         case Seq() => Region(ops)
@@ -60,8 +60,8 @@ object hw:
       ref: SymbolRefId,
       inputs: Seq[(String, ValueId, Type)], outputs: Seq[(String, ValueId, Type)],
     ): Operation =
-      import Attribute._
-      import Type._
+      import Attribute.*
+      import Type.*
 
       Operation(
         OperationId("hw.instance"),
@@ -77,7 +77,7 @@ object hw:
 
   object output:
     def apply(outputs: Seq[(ValueId, Type)]): Operation =
-      import Type._
+      import Type.*
 
       Operation(
         OperationId("hw.output"),

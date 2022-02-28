@@ -1,6 +1,6 @@
 package scirt.circt.types
 
-import scirt.mlir._
+import scirt.mlir.*
 
 object builtin:
   def i(width: Int): Type.Integer = Type.Integer(width, Type.Signedness.Signless)

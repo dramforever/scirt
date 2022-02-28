@@ -158,7 +158,7 @@ enum Type:
 
   def pretty: String = this match
     case Integer(width, signedness) =>
-      import Type.Signedness._
+      import Type.Signedness.*
 
       val prefix = signedness match
         case Signed => "si"

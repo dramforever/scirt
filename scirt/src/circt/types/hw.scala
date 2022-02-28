@@ -1,6 +1,6 @@
 package scirt.circt.types
 
-import scirt.mlir._
+import scirt.mlir.*
 
 object hw:
   def apply(data: String): Type = Type.Dialect(DialectId("hw"), data)

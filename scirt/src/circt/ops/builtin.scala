@@ -1,12 +1,12 @@
 package scirt.circt.ops
 
-import scirt.mlir._
+import scirt.mlir.*
 
 object builtin:
   object module:
     def apply(ops: Seq[Operation], name: Option[String] = None): Operation =
-      import Attribute._
-      import Type._
+      import Attribute.*
+      import Type.*
 
       Operation(
         OperationId("builtin.module"),
