@@ -3,7 +3,7 @@ package scirt.circt.ops
 import scirt.mlir._
 
 object builtin:
-  object module
+  object module:
     def apply(ops: Seq[Operation], name: Option[String] = None): Operation =
       import Attribute._
       import Type._
