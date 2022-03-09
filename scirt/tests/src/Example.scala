@@ -3,6 +3,9 @@ package scirt.tests.circt
 import scirt.circt.*
 import scirt.mlir.*
 import utest.*
+import scirt.signal.Context
+import scirt.dsl.types.{BitVec, given}
+import scirt.signal.Hardware
 
 // TODO: add circt-opt CI for validation
 object Example extends TestSuite:
@@ -32,5 +35,24 @@ object Example extends TestSuite:
           )
         )
         .pretty
+    }
+  }
+
+object BuilderExample extends TestSuite:
+  val tests = Tests {
+    test("builder test") {
+      import BitVec._
+
+      val cx = Context.Basic()
+      val a = Hardware.fromSignal[BitVec[32]](cx.allocate("a"))
+      val b = Hardware.fromSignal[BitVec[32]](cx.allocate("b"))
+
+
+      val body: Context ?=> BitVec[32] =
+        a + b + 3.I
+
+      body(using cx)
+
+      cx.ops.foreach(op => println(op.prettyBlock))
     }
   }
