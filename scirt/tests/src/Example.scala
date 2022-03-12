@@ -6,6 +6,7 @@ import utest.*
 import scirt.signal.Context
 import scirt.dsl.types.{BitVector, given}
 import scirt.signal.Hardware
+import scirt.dsl.module.*
 
 // TODO: add circt-opt CI for validation
 object Example extends TestSuite:
@@ -38,9 +39,9 @@ object Example extends TestSuite:
     }
   }
 
-object BuilderExample extends TestSuite:
+object BasicContextExample extends TestSuite:
   val tests = Tests {
-    test("builder test") {
+    test("basic context test") {
       import BitVector.I
 
       val cx = Context.Basic()
@@ -51,7 +52,20 @@ object BuilderExample extends TestSuite:
         a + b + 3.I
 
       body(using cx)
+    }
+  }
 
-      cx.ops.foreach(op => println(op.prettyBlock))
+object BuilderExample extends TestSuite:
+  val tests = Tests {
+    test("builder test") {
+
+      val mod = Module("add32") {
+        val a: BitVector[32] = input("a")
+        val b: BitVector[32] = input("b")
+        output("sum", a + b)
+      }
+
+      mod.prettyBlock.foreach(println)
+
     }
   }

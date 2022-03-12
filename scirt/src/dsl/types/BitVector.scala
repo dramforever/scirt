@@ -3,6 +3,7 @@ package scirt.dsl.types
 import scirt.mlir.Type
 import scirt.signal.*
 import scirt.dsl.ops.*
+import scirt.circt.types
 
 import scirt.utils.{given, *}
 
@@ -14,7 +15,7 @@ export scirt.utils.knownEnumMacro
 class BitVector[W <: Int](val signal: Signal)
 
 given given_Hardware_BitVector[W <: Int : KnownInt]: Hardware[BitVector[W]] with
-  def underlyingType = Type.Integer(KnownInt[W], Type.Signedness.Signless)
+  def underlyingType = types.builtin.i(KnownInt[W])
   def fromSignal(signal: Signal ) = BitVector[W](signal)
   def toSignal(value: BitVector[W]) = value.signal
 

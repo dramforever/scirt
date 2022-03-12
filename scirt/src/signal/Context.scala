@@ -11,12 +11,12 @@ trait Context:
   def add(op: Operation): Unit
 
 object Context:
-  class Basic extends Context:
+  open class Basic extends Context:
     val usedNames = mutable.Set[String]()
     val ownSignals = mutable.Set[Signal]()
     var counter = 0
 
-    val ops = mutable.Buffer[Operation]()
+    val currentOps = mutable.Buffer[Operation]()
 
     def allocate(name: String) : Signal =
       while usedNames.contains(s"${name}${counter}") do
@@ -31,4 +31,4 @@ object Context:
       signal
 
     def accessible(signal: Signal) = ownSignals.contains(signal)
-    def add(op: Operation) = ops += op
+    def add(op: Operation) = currentOps += op
