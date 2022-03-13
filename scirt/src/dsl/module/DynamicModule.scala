@@ -6,7 +6,7 @@ import scirt.circt.ops
 
 import scala.collection.mutable
 
-class Module extends Context.Basic:
+class DynamicModule extends Context.Basic:
   val inputs = mutable.Buffer[(String, Signal, Type)]()
   val outputs = mutable.Buffer[(String, Signal, Type)]()
 
@@ -26,14 +26,14 @@ class Module extends Context.Basic:
       currentOps.toSeq
         :+ ops.hw.output(outputs.toSeq.map((_, sig, ty) => (sig.valueId, ty))))
 
-object Module:
-  def apply(name: String)(body: Module ?=> Unit): Operation =
-    val mod = new Module()
+object DynamicModule:
+  def apply(name: String)(body: DynamicModule ?=> Unit): Operation =
+    val mod = new DynamicModule()
     body(using mod)
     mod.build(name)
 
-def input[T : Hardware](name: String)(using mod: Module): T =
+def input[T : Hardware](name: String)(using mod: DynamicModule): T =
   Hardware.fromSignal(mod.allocateInput(name, Hardware.underlyingType[T]))
 
-def output[T : Hardware](name: String, value: T)(using mod: Module): Unit =
+def output[T : Hardware](name: String, value: T)(using mod: DynamicModule): Unit =
   mod.recordOutput(name, Hardware.toSignal(value), Hardware.underlyingType[T])

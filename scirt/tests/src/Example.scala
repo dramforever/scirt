@@ -59,7 +59,7 @@ object BuilderExample extends TestSuite:
   val tests = Tests {
     test("builder test") {
 
-      val mod = Module("add32") {
+      val mod = DynamicModule("add32") {
         val a: BitVector[32] = input("a")
         val b: BitVector[32] = input("b")
         output("sum", a + b)
