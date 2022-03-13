@@ -7,6 +7,8 @@ import scirt.circt.ops
 import scala.collection.mutable
 
 class Module[P <: Ports : Ports.Known] extends Context.Basic:
+  val ports: P = Ports().asInstanceOf
+
   val inputs: Map[String, (Signal, Type)] =
     summon[Ports.Known[P]].has.map((name, ty) => (name, (allocate(name), ty)))
 
@@ -27,7 +29,7 @@ class Module[P <: Ports : Ports.Known] extends Context.Basic:
       currentOps.toSeq
         :+ ops.hw.output(outputs.toSeq.map((_, sig, ty) => (sig.valueId, ty))))
 
-def io[P <: Ports](using Module[P]): P = Ports().asInstanceOf
+transparent inline def io[P <: Ports](using inline q: Module[P]): P = q.ports
 
 object Module:
   def apply[P <: Ports : Ports.Known](name: String)(body: Module[P] ?=> Unit): Operation =
