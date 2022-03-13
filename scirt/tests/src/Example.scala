@@ -69,3 +69,23 @@ object BuilderExample extends TestSuite:
 
     }
   }
+
+object ModuleExample extends TestSuite:
+  val tests = Tests {
+    test("builder test") {
+      import BitVector.I
+
+      type AdderPorts = Ports {
+        val a: BitVector[32]
+        val b: BitVector[32]
+        def sum(out: BitVector[32]): Unit
+      }
+
+      val mod = Module[AdderPorts]("static_add32") {
+        io.sum(io.a + io.b)
+      }
+
+      mod.prettyBlock.foreach(println)
+
+    }
+  }
