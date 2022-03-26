@@ -4,15 +4,13 @@ import scirt.mlir
 
 import scala.quoted.*
 import scirt.signal.Hardware
+import scirt.dsl.wire.Wire
 
 class Ports
 
 implicit class PortsSelector[P <: Ports](inner: P) extends Selectable:
   inline def selectDynamic(inline field: String)(using mod: Module[P]): Any =
     ${ Ports.selectDynamicImpl[P]('{ inner }, '{ mod }, '{ field }) }
-
-  inline def applyDynamic(inline field: String)(inline args: Any*)(using mod: Module[P]): Any =
-    ${ Ports.applyDynamicImpl[P]('{ inner }, '{ mod }, '{ field })('{ args }) }
 
 object Ports:
   trait Known[P <: Ports]:
@@ -38,11 +36,9 @@ object Ports:
     val (has, needs) =
       work(TypeRepr.of[P]).partitionMap((field, ty) =>
         ty match
-          case MethodType(Seq(_), Seq(fieldTy), unitTy)
-            if unitTy =:= TypeRepr.of[Unit] =>
-              Right((field, fieldTy.asType.asInstanceOf[Type[? <: Any]]))
-          case _: MethodType =>
-            throw RuntimeException("Invalid method type")
+          case AppliedType(wireTy, Seq(ty))
+            if wireTy =:= TypeRepr.of[Wire] =>
+              Right((field, ty.asType.asInstanceOf[Type[? <: Any]]))
           case ty =>
             Left((field, ty.asType.asInstanceOf[Type[? <: Any]])))
 
@@ -51,17 +47,21 @@ object Ports:
   def selectDynamicImpl[P <: Ports : Type](
     inner: Expr[P], mod: Expr[Module[P]], field: Expr[String]
   )(using Quotes): Expr[Any] =
-    '{ ${ getHardware(portsRepr[P].has(field.value.get)) }.fromSignal(${ mod }.getInput(${ field })) }
-
-  def applyDynamicImpl[P <: Ports : Type](
-    inner: Expr[P], mod: Expr[Module[P]], field: Expr[String]
-  )(args: Expr[Seq[Any]])(using Quotes): Expr[Any] =
-    val arg = args match
-      case Varargs(Seq(arg)) => arg
-      case _ => throw RuntimeException("Shouldn't be possible")
-
-    '{ ${ mod }.setOutput(${ field }, ${ getHardware(portsRepr[P].needs(field.value.get)) }.toSignal(${ arg.asInstanceOf })) }
-
+    val ports = portsRepr[P]
+    if ports.has.contains(field.value.get) then
+      val hardware = getHardware(ports.has(field.value.get))
+      '{ ${ hardware }.fromSignal(${ mod }.getInput(${ field })) }
+    else if ports.needs.contains(field.value.get) then
+      val ty = ports.needs(field.value.get)
+      val hardware = getHardware(ty)
+      ty match
+        case '[t] =>
+          '{
+            Wire.fromSignal[t](${ mod }.getOutput(${ field }))
+              (using ${ hardware.asInstanceOf }, ${ mod })
+          }
+    else
+      throw RuntimeException("This shouldn't be possible")
 
   def getHardware(ty: Type[? <: Any])(using Quotes): Expr[Hardware[?]] =
     import quotes.reflect.*

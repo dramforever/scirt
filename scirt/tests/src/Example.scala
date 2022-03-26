@@ -7,6 +7,7 @@ import scirt.signal.Context
 import scirt.dsl.types.{BitVector, given}
 import scirt.signal.Hardware
 import scirt.dsl.module.*
+import scirt.dsl.wire.*
 
 // TODO: add circt-opt CI for validation
 object Example extends TestSuite:
@@ -62,7 +63,7 @@ object BuilderExample extends TestSuite:
       val mod = DynamicModule("add32") {
         val a: BitVector[32] = input("a")
         val b: BitVector[32] = input("b")
-        output("sum", a + b)
+        output[BitVector[32]]("sum") := a + b
       }
 
       mod.prettyBlock.foreach(println)
@@ -78,11 +79,13 @@ object ModuleExample extends TestSuite:
       type AdderPorts = Ports {
         val a: BitVector[32]
         val b: BitVector[32]
-        def sum(out: BitVector[32]): Unit
+        val sum: Output[BitVector[32]]
       }
 
       val mod = Module[AdderPorts]("static_add32") {
-        io.sum(io.a + io.b)
+        import io.*
+
+        sum := a + b
       }
 
       mod.prettyBlock.foreach(println)

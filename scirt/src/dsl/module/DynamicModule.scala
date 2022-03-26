@@ -5,6 +5,7 @@ import scirt.mlir.{Type, Operation}
 import scirt.circt.ops
 
 import scala.collection.mutable
+import scirt.dsl.wire.Wire
 
 class DynamicModule extends Context.Basic:
   val inputs = mutable.Buffer[(String, Signal, Type)]()
@@ -15,8 +16,10 @@ class DynamicModule extends Context.Basic:
     inputs += ((name, sig, ty))
     sig
 
-  def recordOutput(name: String, sig: Signal, ty: Type): Unit =
+  def allocateOutput(name: String, ty: Type): Signal =
+    val sig = allocate(name)
     outputs += ((name, sig, ty))
+    sig
 
   def build(name: String): Operation =
     ops.hw.module(
@@ -35,5 +38,5 @@ object DynamicModule:
 def input[T : Hardware](name: String)(using mod: DynamicModule): T =
   Hardware.fromSignal(mod.allocateInput(name, Hardware.underlyingType[T]))
 
-def output[T : Hardware](name: String, value: T)(using mod: DynamicModule): Unit =
-  mod.recordOutput(name, Hardware.toSignal(value), Hardware.underlyingType[T])
+def output[T : Hardware](name: String)(using mod: DynamicModule): Wire[T] =
+  Wire.fromSignal(mod.allocateOutput(name, Hardware.underlyingType[T]))
