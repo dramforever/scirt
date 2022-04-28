@@ -21,16 +21,23 @@ class DynamicModule extends Context.Basic:
     outputs += ((name, sig, ty))
     sig
 
-  def build(name: String): Operation =
-    ops.hw.module(
+  def build(name: String): (Operation, DynamicModuleRef) =
+    val op = ops.hw.module(
       name,
       inputs.toSeq.map((name, sig, ty) => (name, sig.valueId, ty)),
       outputs.toSeq.map((name, sig, ty) => (name, ty)),
       currentOps.toSeq
         :+ ops.hw.output(outputs.toSeq.map((_, sig, ty) => (sig.valueId, ty))))
 
+    val ref = DynamicModuleRef(
+      name,
+      inputs.toSeq.map((name, sig, ty) => (name, ty)).toMap,
+      outputs.toSeq.map((name, sig, ty) => (name, ty)).toMap)
+
+    (op, ref)
+
 object DynamicModule:
-  def apply(name: String)(body: DynamicModule ?=> Unit): Operation =
+  def apply(name: String)(body: DynamicModule ?=> Unit): (Operation, DynamicModuleRef) =
     val mod = new DynamicModule()
     body(using mod)
     mod.build(name)

@@ -9,6 +9,7 @@ trait Context:
   def allocate(name: String = "_"): Signal
   def accessible(signal: Signal): Boolean
   def add(op: Operation): Unit
+  def allocateInstanceName(name: String = "_"): String
 
 object Context:
   open class Basic extends Context:
@@ -17,6 +18,8 @@ object Context:
     var counter = 0
 
     val currentOps = mutable.Buffer[Operation]()
+
+    val usedInstanceNames = mutable.Set[String]()
 
     def allocate(name: String) : Signal =
       while usedNames.contains(s"${name}${counter}") do
@@ -32,3 +35,10 @@ object Context:
 
     def accessible(signal: Signal) = ownSignals.contains(signal)
     def add(op: Operation) = currentOps += op
+
+    def allocateInstanceName(name: String): String =
+      while usedNames.contains(s"${name}${counter}") do
+        counter += 1
+      val uniqueName = s"${name}${counter}"
+      usedInstanceNames += uniqueName
+      uniqueName
