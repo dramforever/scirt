@@ -8,6 +8,7 @@ import scirt.dsl.types.{BitVector, given}
 import scirt.signal.Hardware
 import scirt.dsl.module.*
 import scirt.dsl.wire.*
+import scirt.dsl.design.Design
 
 // TODO: add circt-opt CI for validation
 object Example extends TestSuite:
@@ -60,35 +61,34 @@ object BuilderExample extends TestSuite:
   val tests = Tests {
     test("builder test") {
 
-      val adder32 = DynamicModule("add32") {
-        val a: BitVector[32] = input("a")
-        val b: BitVector[32] = input("b")
-        output[BitVector[32]]("sum") := a + b
+      val design = Design {
+        val adder32 = DynamicModule("add32") {
+          val a: BitVector[32] = input("a")
+          val b: BitVector[32] = input("b")
+          output[BitVector[32]]("sum") := a + b
+        }
+
+        val addmore = DynamicModule("addmore") {
+          val a: BitVector[32] = input("a")
+          val b: BitVector[32] = input("b")
+          val c: BitVector[32] = input("c")
+
+          val p1 = adder32.instance
+          val p2 = adder32.instance
+
+          p1.input("a") := a
+          p1.input("b") := b
+
+          p2.input("a") := p1.output[BitVector[32]]("sum")
+          p2.input("b") := c
+
+          val sum = output[BitVector[32]]("sum")
+
+          sum := p2.output[BitVector[32]]("sum")
+        }
       }
 
-      val addmore = DynamicModule("addmore") {
-        val a: BitVector[32] = input("a")
-        val b: BitVector[32] = input("b")
-        val c: BitVector[32] = input("c")
-
-        val p1 = adder32._2.instance
-        val p2 = adder32._2.instance
-
-        p1.input("a") := a
-        p1.input("b") := b
-
-        p2.input("a") := p1.output[BitVector[32]]("sum")
-        p2.input("b") := c
-
-        val sum = output[BitVector[32]]("sum")
-
-        sum := p2.output[BitVector[32]]("sum")
-      }
-
-
-      adder32._1.prettyBlock.foreach(println)
-      addmore._1.prettyBlock.foreach(println)
-
+      design.foreach(_.prettyBlock.foreach(println(_)))
     }
   }
 

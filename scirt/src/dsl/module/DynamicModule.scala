@@ -6,6 +6,7 @@ import scirt.circt.ops
 
 import scala.collection.mutable
 import scirt.dsl.wire.Wire
+import scirt.dsl.design.Design
 
 class DynamicModule extends Context.Basic:
   val inputs = mutable.Buffer[(String, Signal, Type)]()
@@ -21,7 +22,7 @@ class DynamicModule extends Context.Basic:
     outputs += ((name, sig, ty))
     sig
 
-  def build(name: String): (Operation, DynamicModuleRef) =
+  def build(name: String)(using design: Design): DynamicModuleRef =
     val op = ops.hw.module(
       name,
       inputs.toSeq.map((name, sig, ty) => (name, sig.valueId, ty)),
@@ -34,10 +35,11 @@ class DynamicModule extends Context.Basic:
       inputs.toSeq.map((name, sig, ty) => (name, ty)).toMap,
       outputs.toSeq.map((name, sig, ty) => (name, ty)).toMap)
 
-    (op, ref)
+    design += op
+    ref
 
 object DynamicModule:
-  def apply(name: String)(body: DynamicModule ?=> Unit): (Operation, DynamicModuleRef) =
+  def apply(name: String)(body: DynamicModule ?=> Unit)(using Design): DynamicModuleRef =
     val mod = new DynamicModule()
     body(using mod)
     mod.build(name)
