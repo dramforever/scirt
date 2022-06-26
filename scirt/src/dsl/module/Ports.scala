@@ -19,6 +19,11 @@ object Ports:
 
   inline given validPorts[P <: Ports]: Known[P] = ${ validPortsImpl[P] }
 
+  trait Flipped[P <: Ports]:
+    type T <: Ports
+
+  transparent inline given validFlipped[P <: Ports]: Flipped[P] = ${ flippedImpl[P] }
+
   case class PortsRepr(
     has: Map[String, Type[? <: Any]],
     needs: Map[String, Type[? <: Any]])
@@ -94,3 +99,27 @@ object Ports:
         def has = Map(${ vHas }: _*)
         def needs = Map(${ vNeeds }: _*)
     }
+
+  def getFlipped(ports: PortsRepr)(using Quotes): Type[?] =
+    import quotes.reflect.*
+
+    val hasTypes = ports.has.mapValues(ty =>
+      ty match
+        case '[t] => TypeRepr.of[Wire[t]])
+
+    val needsTypes = ports.needs.mapValues(ty =>
+      ty match
+        case '[t] => TypeRepr.of[t])
+
+    val repr = (hasTypes ++ needsTypes).foldLeft(TypeRepr.of[Ports])((base, pair) =>
+      Refinement(base, pair._1, pair._2))
+
+    repr.asType
+
+  def flippedImpl[P <: Ports : Type](using Quotes): Expr[Flipped[P]] =
+    import quotes.reflect.*
+
+    getFlipped(portsRepr[P]) match
+      case '[t] => '{
+        (new Flipped[P] { type T = t }).asInstanceOf[Flipped[P] { type T = t }]
+      }
