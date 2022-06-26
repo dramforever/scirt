@@ -4,11 +4,12 @@ import scirt.circt.*
 import scirt.mlir.*
 import utest.*
 import scirt.signal.Context
-import scirt.dsl.types.{BitVector, given}
+import scirt.dsl.types.{*, given}
 import scirt.signal.Hardware
 import scirt.dsl.module.*
-import scirt.dsl.wire.*
 import scirt.dsl.design.Design
+import scirt.dsl.wire.*
+import scirt.dsl.ops.*
 
 // TODO: add circt-opt CI for validation
 object Example extends TestSuite:
@@ -135,5 +136,38 @@ object ModuleExample extends TestSuite:
       }
 
       design.foreach(_.prettyBlock.foreach(println(_)))
+    }
+  }
+
+
+object CounterExample extends TestSuite:
+  val tests = Tests {
+    test("builder test") {
+      import BitVector.I
+
+      type CounterPorts = Ports {
+        val clk: Clock
+        val delta: BitVector[32]
+        val sum: Output[BitVector[32]]
+      }
+
+      val design = Design {
+        val counter = Module[CounterPorts]("counter") {
+          import io.*
+
+          val ctr = Reg[BitVector[32]](clk)
+          val ctr2 = Reg[BitVector[32]](clk)
+          val ctr3 = Reg[BitVector[32]](clk)
+
+          ctr := ctr.get + delta
+          ctr2 := delta
+          ctr3 := delta
+
+          sum := ctr.get
+        }
+      }
+
+      design.foreach(_.prettyBlock.foreach(println(_)))
+
     }
   }

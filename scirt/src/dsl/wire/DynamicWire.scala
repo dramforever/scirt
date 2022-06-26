@@ -3,6 +3,7 @@ package scirt.dsl.wire
 import scirt.signal.*
 import scirt.mlir.{ValueId, Type, Operation}
 import scirt.circt.ops
+import scirt.utils.passOp
 
 class DynamicWire(val signal: Signal, val ty: Type)(using ctx: Context):
   var connected = false

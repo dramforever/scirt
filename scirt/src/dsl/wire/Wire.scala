@@ -1,19 +1,8 @@
 package scirt.dsl.wire
 
 import scirt.signal.*
-import scirt.mlir.{ValueId, Type, Operation}
 import scirt.circt.ops
-
-// FIXME: Using bitcast really is a hack. Also, CIRCT upstream already moved
-// hw.bitcast to comb.bitcast.
-private def passOp(output: ValueId, input: ValueId, ty: Type): Operation =
-  import scirt.mlir.*
-
-  Operation(
-    OperationId("hw.bitcast"),
-    Type.Function(Seq(ty), Seq(ty)),
-    Seq(OpResult(output)),
-    Seq(ValueUse(input)))
+import scirt.utils.passOp
 
 class Wire[T : Hardware](val signal: Signal)(using ctx: Context):
   var connected = false
