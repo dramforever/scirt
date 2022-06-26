@@ -103,13 +103,37 @@ object ModuleExample extends TestSuite:
         val sum: Output[BitVector[32]]
       }
 
-      val mod = Module[AdderPorts]("static_add32") {
-        import io.*
-
-        sum := a + b
+      type AddMorePorts = Ports {
+          val a: BitVector[32]
+          val b: BitVector[32]
+          val c: BitVector[32]
+          val sum: Output[BitVector[32]]
       }
 
-      mod.prettyBlock.foreach(println)
+      val design = Design {
+        val adder32 = Module[AdderPorts]("static_add32") {
+          import io.*
 
+          sum := a + b
+        }
+
+        val addmore = Module[AddMorePorts]("addmore") {
+          import io.*
+
+          val p1 = adder32.instance
+          val p2 = adder32.instance
+
+          p1.a := a
+          p1.b := b
+
+          p2.a := p1.sum
+          p2.b := c
+
+          sum := p2.sum
+        }
+
+      }
+
+      design.foreach(_.prettyBlock.foreach(println(_)))
     }
   }
