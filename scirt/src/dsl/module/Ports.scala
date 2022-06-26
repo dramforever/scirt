@@ -5,12 +5,13 @@ import scirt.mlir
 import scala.quoted.*
 import scirt.signal.Hardware
 import scirt.dsl.wire.Wire
+import scirt.signal.Context
 
-class Ports
+class Ports(val mod: HasPorts)
 
 implicit class PortsSelector[P <: Ports](inner: P) extends Selectable:
-  inline def selectDynamic(inline field: String)(using mod: Module[P]): Any =
-    ${ Ports.selectDynamicImpl[P]('{ inner }, '{ mod }, '{ field }) }
+  inline def selectDynamic(inline field: String)(using ctx: Context): Any =
+    ${ Ports.selectDynamicImpl[P]('{ inner }, '{ ctx }, '{ field }) }
 
 object Ports:
   trait Known[P <: Ports]:
@@ -32,7 +33,7 @@ object Ports:
     import quotes.reflect.*
 
     def work(tpe: TypeRepr): Seq[(String, TypeRepr)] =
-      tpe match
+      tpe.dealias match
         case Refinement(tpe, field, ty) =>
           (field, ty) +: work(tpe)
         case _ if tpe =:= TypeRepr.of[Ports] =>
@@ -50,20 +51,20 @@ object Ports:
     PortsRepr(has.toMap, needs.toMap)
 
   def selectDynamicImpl[P <: Ports : Type](
-    inner: Expr[P], mod: Expr[Module[P]], field: Expr[String]
+    inner: Expr[P], ctx: Expr[Context], field: Expr[String]
   )(using Quotes): Expr[Any] =
     val ports = portsRepr[P]
     if ports.has.contains(field.value.get) then
       val hardware = getHardware(ports.has(field.value.get))
-      '{ ${ hardware }.fromSignal(${ mod }.getInput(${ field })) }
+      '{ ${ hardware }.fromSignal(${ inner }.mod.getInput(${ field })) }
     else if ports.needs.contains(field.value.get) then
       val ty = ports.needs(field.value.get)
       val hardware = getHardware(ty)
       ty match
         case '[t] =>
           '{
-            Wire.fromSignal[t](${ mod }.getOutput(${ field }))
-              (using ${ hardware.asInstanceOf }, ${ mod })
+            Wire.fromSignal[t](${ inner }.mod.getOutput(${ field }))
+              (using ${ hardware.asInstanceOf }, ${ ctx })
           }
     else
       throw RuntimeException("This shouldn't be possible")

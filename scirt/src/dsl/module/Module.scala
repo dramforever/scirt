@@ -6,8 +6,8 @@ import scirt.circt.ops
 
 import scala.collection.mutable
 
-class Module[P <: Ports : Ports.Known] extends Context.Basic:
-  val ports: P = Ports().asInstanceOf
+class Module[P <: Ports : Ports.Known] extends Context.Basic with HasPorts:
+  val ports: P = Ports(this).asInstanceOf
 
   val inputs: Map[String, (Signal, Type)] =
     summon[Ports.Known[P]].has.map((name, ty) => (name, (allocate(name), ty)))
