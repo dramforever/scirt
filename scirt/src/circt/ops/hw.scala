@@ -20,7 +20,7 @@ object hw:
             "argNames" -> Array(inputs.map(_._1).map(StringAttr(_))),
             "resultNames" -> Array(outputs.map(_._1).map(StringAttr(_))),
             "sym_name" -> StringAttr(name),
-            "type" -> TypeAttr(Function(inputs.map(_._2), outputs.map(_._2))),
+            "function_type" -> TypeAttr(Function(inputs.map(_._2), outputs.map(_._2))),
             "parameters" -> Array(Seq()),
             "comment" -> StringAttr(""))))
 
@@ -50,7 +50,7 @@ object hw:
           "argNames" -> Array(inputs.map(_._1).map(StringAttr(_))),
           "resultNames" -> Array(outputs.map(_._1).map(StringAttr(_))),
           "sym_name" -> StringAttr(name),
-          "type" -> TypeAttr(Function(inputs.map(_._3), outputs.map(_._2))),
+          "function_type" -> TypeAttr(Function(inputs.map(_._3), outputs.map(_._2))),
           "parameters" -> Array(Seq()),
           "comment" -> StringAttr(""))))
 
